@@ -343,6 +343,20 @@ export class TankGameEngine {
     this.mouseDown = false;
   };
 
+  private handleViewportResize = () => {
+    const cssW = this.mainCanvas?.clientWidth || window.innerWidth;
+    const cssH = this.mainCanvas?.clientHeight || window.innerHeight;
+    if (cssW <= 0 || cssH <= 0) return;
+    const scale = this.computeRenderScale(cssW, cssH);
+    this.renderScale = scale;
+    const viewW = cssW / scale;
+    const viewH = cssH / scale;
+    const maxX = Math.max(0, this.arenaWidth - viewW);
+    const maxY = Math.max(0, this.arenaHeight - viewH);
+    this.cameraX = Math.max(0, Math.min(maxX, this.cameraX));
+    this.cameraY = Math.max(0, Math.min(maxY, this.cameraY));
+  };
+
   private bindWindowEvents() {
     window.addEventListener('keydown', this.handleKeyDown);
     window.addEventListener('keyup', this.handleKeyUp);
@@ -350,6 +364,8 @@ export class TankGameEngine {
     window.addEventListener('mousemove', this.handleMouseMove);
     window.addEventListener('mousedown', this.handleMouseDown);
     window.addEventListener('mouseup', this.handleMouseUp);
+    window.addEventListener('resize', this.handleViewportResize);
+    window.addEventListener('orientationchange', this.handleViewportResize);
     window.addEventListener('gamepadconnected', this.handleGamepadChange);
     window.addEventListener('gamepaddisconnected', this.handleGamepadChange);
   }
@@ -361,6 +377,8 @@ export class TankGameEngine {
     window.removeEventListener('mousemove', this.handleMouseMove);
     window.removeEventListener('mousedown', this.handleMouseDown);
     window.removeEventListener('mouseup', this.handleMouseUp);
+    window.removeEventListener('resize', this.handleViewportResize);
+    window.removeEventListener('orientationchange', this.handleViewportResize);
     window.removeEventListener('gamepadconnected', this.handleGamepadChange);
     window.removeEventListener('gamepaddisconnected', this.handleGamepadChange);
   }
@@ -2378,8 +2396,12 @@ export class TankGameEngine {
   }
 
   private computeRenderScale(cssW: number, cssH: number): number {
-    // Full-screen edge-to-edge coverage with balanced tactical zoom on Android landscape phones
-    const mobileFriendlyZoom = Math.min(1.05, Math.max(0.62, cssH / 620));
+    // Uniform 1:1 world scale covering full viewport in both landscape and portrait without stretching
+    const isPortrait = cssH > cssW;
+    const shortestSide = Math.min(cssW, cssH);
+    const mobileFriendlyZoom = isPortrait
+      ? Math.min(0.95, Math.max(0.58, shortestSide / 580))
+      : Math.min(1.05, Math.max(0.62, cssH / 620));
     return Math.max(mobileFriendlyZoom, cssW / this.arenaWidth, cssH / this.arenaHeight);
   }
 
@@ -2398,6 +2420,7 @@ export class TankGameEngine {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const cssW = canvas.clientWidth || window.innerWidth;
     const cssH = canvas.clientHeight || window.innerHeight;
+    if (cssW <= 0 || cssH <= 0) return;
     if (canvas.width !== Math.floor(cssW * dpr) || canvas.height !== Math.floor(cssH * dpr)) {
       canvas.width = Math.floor(cssW * dpr);
       canvas.height = Math.floor(cssH * dpr);
@@ -2408,6 +2431,10 @@ export class TankGameEngine {
 
     const scale = this.computeRenderScale(cssW, cssH);
     this.renderScale = scale;
+    const maxCamX = Math.max(0, this.arenaWidth - cssW / scale);
+    const maxCamY = Math.max(0, this.arenaHeight - cssH / scale);
+    this.cameraX = Math.max(0, Math.min(maxCamX, this.cameraX));
+    this.cameraY = Math.max(0, Math.min(maxCamY, this.cameraY));
 
     let shakeX = 0;
     let shakeY = 0;
@@ -2576,8 +2603,8 @@ export class TankGameEngine {
       ctx.save();
       ctx.scale(dpr, dpr);
       ctx.globalAlpha = alpha;
-      const bw = 420;
-      const bh = 84;
+      const bw = Math.min(420, Math.max(240, cssW - 32));
+      const bh = bw < 320 ? 74 : 84;
       const bx = cssW / 2 - bw / 2;
       const by = cssH / 2 - bh / 2;
       ctx.fillStyle = 'rgba(13, 17, 23, 0.88)';
@@ -2587,13 +2614,13 @@ export class TankGameEngine {
       ctx.strokeRect(bx, by, bw, bh);
 
       ctx.fillStyle = '#F8FAFC';
-      ctx.font = '700 26px "Barlow Condensed", sans-serif';
+      ctx.font = `700 ${bw < 320 ? 21 : 26}px "Barlow Condensed", sans-serif`;
       ctx.textAlign = 'center';
-      ctx.fillText(this.bannerText.toUpperCase(), cssW / 2, by + 38);
+      ctx.fillText(this.bannerText.toUpperCase(), cssW / 2, by + (bw < 320 ? 33 : 38));
 
       ctx.fillStyle = '#F59E0B';
-      ctx.font = '600 13px "DM Sans", sans-serif';
-      ctx.fillText(this.bannerSub, cssW / 2, by + 62);
+      ctx.font = `600 ${bw < 320 ? 12 : 13}px "DM Sans", sans-serif`;
+      ctx.fillText(this.bannerSub, cssW / 2, by + (bw < 320 ? 55 : 62));
       ctx.restore();
     }
   }

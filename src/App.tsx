@@ -5,7 +5,6 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { GameHud } from './components/GameHud';
-import { LandscapeGuard, requestAndroidLandscapeFullscreen } from './components/LandscapeGuard';
 import { LevelsScreen } from './components/LevelsScreen';
 import { OverlayModals } from './components/OverlayModals';
 import { StoreModal } from './components/StoreModal';
@@ -14,15 +13,12 @@ import { TouchController } from './components/TouchController';
 import { TankGameEngine } from './game/engine';
 import { sound } from './game/sound';
 import { HudSnapshot, WeaponId } from './game/types';
-
-function detectTouchDevice(): boolean {
-  if (typeof window === 'undefined') return false;
-  return (
-    window.matchMedia('(pointer: coarse)').matches ||
-    (navigator.maxTouchPoints ?? 0) > 0 ||
-    'ontouchstart' in window
-  );
-}
+import {
+  enterLandscapeMode,
+  isMobileOrTouchDevice,
+  tryFirstGestureLandscapeLock,
+  tryStartupLandscapeLock,
+} from './utils/orientation';
 
 export default function App() {
   const mainCanvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -33,7 +29,7 @@ export default function App() {
   const [muted, setMuted] = useState(false);
   const [showLevelsPage, setShowLevelsPage] = useState(false);
   const [storeMinimized, setStoreMinimized] = useState(false);
-  const [touchControlsEnabled, setTouchControlsEnabled] = useState<boolean>(() => detectTouchDevice());
+  const [touchControlsEnabled, setTouchControlsEnabled] = useState<boolean>(() => isMobileOrTouchDevice());
   const prevPhaseRef = useRef<string>('TITLE');
 
   useEffect(() => {
@@ -49,21 +45,25 @@ export default function App() {
     engine.attachCanvases(mainCanvasRef.current, radarCanvasRef.current);
     engine.startLoop();
 
+    // Attempt automatic landscape orientation immediately on startup (succeeds in standalone PWAs / permissive browsers)
+    void tryStartupLandscapeLock();
+
     return () => {
       engine.destroy();
       engineRef.current = null;
     };
   }, []);
 
-  // Auto-enable on-screen controller whenever touch input is actually used
+  // Auto-enable on-screen controller & attempt landscape orientation on first mobile touch interaction
   useEffect(() => {
-    const onFirstTouch = (e: PointerEvent) => {
+    const onTouchInteraction = (e: PointerEvent) => {
       if (e.pointerType === 'touch') {
         setTouchControlsEnabled(true);
+        tryFirstGestureLandscapeLock();
       }
     };
-    window.addEventListener('pointerdown', onFirstTouch, { passive: true });
-    return () => window.removeEventListener('pointerdown', onFirstTouch);
+    window.addEventListener('pointerdown', onTouchInteraction, { passive: true });
+    return () => window.removeEventListener('pointerdown', onTouchInteraction);
   }, []);
 
   useEffect(() => {
@@ -85,9 +85,16 @@ export default function App() {
     setTouchControlsEnabled((prev) => !prev);
   }, []);
 
+  const handleOpenLevels = useCallback(() => {
+    if (isMobileOrTouchDevice()) {
+      void enterLandscapeMode({ requestFullscreen: true });
+    }
+    setShowLevelsPage(true);
+  }, []);
+
   const handleStartMission = useCallback((level: number) => {
-    if (detectTouchDevice()) {
-      void requestAndroidLandscapeFullscreen();
+    if (isMobileOrTouchDevice()) {
+      void enterLandscapeMode({ requestFullscreen: true });
     }
     setShowLevelsPage(false);
     setStoreMinimized(false);
@@ -95,8 +102,8 @@ export default function App() {
   }, []);
 
   const handleStartTutorial = useCallback(() => {
-    if (detectTouchDevice()) {
-      void requestAndroidLandscapeFullscreen();
+    if (isMobileOrTouchDevice()) {
+      void enterLandscapeMode({ requestFullscreen: true });
     }
     setShowLevelsPage(false);
     setStoreMinimized(false);
@@ -153,7 +160,7 @@ export default function App() {
           gamepadConnected={hud.gamepadConnected}
           onToggleMute={handleToggleMute}
           onPlayHighest={() => handleStartMission(hud.unlockedMaxLevel)}
-          onOpenLevels={() => setShowLevelsPage(true)}
+          onOpenLevels={handleOpenLevels}
           onStartTutorial={handleStartTutorial}
         />
       )}
@@ -216,8 +223,6 @@ export default function App() {
           onMainMenu={handleMainMenu}
         />
       )}
-
-      <LandscapeGuard />
     </div>
   );
 }

@@ -192,7 +192,7 @@ export const TouchController: React.FC<TouchControllerProps> = ({
           onPointerMove={handleMoveMove}
           onPointerUp={handleMoveEnd}
           onPointerCancel={handleMoveEnd}
-          className={`relative w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 [@media(max-height:420px)]:w-28 [@media(max-height:420px)]:h-28 rounded-full border-2 flex items-center justify-center touch-none transition-colors ${
+          className={`relative w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 [@media(max-height:420px)]:w-28 [@media(max-height:420px)]:h-28 rounded-full border-2 flex items-center justify-center touch-none transition-colors ${
             moveVis.active
               ? 'border-sky-400/75 bg-[#0d1117]/60'
               : 'border-slate-500/45 bg-[#0d1117]/40'
@@ -206,7 +206,7 @@ export const TouchController: React.FC<TouchControllerProps> = ({
 
           {/* Inner Thumb Puck */}
           <div
-            className={`w-11 h-11 sm:w-12 sm:h-12 md:w-14 md:h-14 [@media(max-height:420px)]:w-11 [@media(max-height:420px)]:h-11 rounded-full border-2 flex items-center justify-center shadow-lg transition-colors ${
+            className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 [@media(max-height:420px)]:w-11 [@media(max-height:420px)]:h-11 rounded-full border-2 flex items-center justify-center shadow-lg transition-colors ${
               moveVis.active
                 ? 'bg-sky-400/35 border-sky-300'
                 : 'bg-slate-700/60 border-slate-400/60'
@@ -224,15 +224,15 @@ export const TouchController: React.FC<TouchControllerProps> = ({
       </div>
 
       {/* Right Virtual Controls: Quick Fire Button + Aim/Auto-Shoot Stick */}
-      <div className="pointer-events-auto flex items-end gap-2.5 sm:gap-3.5">
-        <div className="flex flex-col items-center gap-1 pb-5 sm:pb-6">
+      <div className="pointer-events-auto flex items-end gap-2 sm:gap-3.5">
+        <div className="flex flex-col items-center gap-1 pb-4 sm:pb-6">
           <button
             type="button"
             aria-label="Fire Weapon"
             onPointerDown={handleFireDown}
             onPointerUp={handleFireEnd}
             onPointerCancel={handleFireEnd}
-            className={`w-13 h-13 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full border-2 flex flex-col items-center justify-center touch-none transition-transform active:scale-95 ${
+            className={`w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full border-2 flex flex-col items-center justify-center touch-none transition-transform active:scale-95 ${
               fireActive
                 ? 'bg-rose-500/50 border-rose-300 text-white'
                 : 'bg-[#0d1117]/55 border-amber-500/65 text-amber-300'
@@ -253,7 +253,7 @@ export const TouchController: React.FC<TouchControllerProps> = ({
             onPointerMove={handleAimMove}
             onPointerUp={handleAimEnd}
             onPointerCancel={handleAimEnd}
-            className={`relative w-28 h-28 sm:w-32 sm:h-32 md:w-36 md:h-36 [@media(max-height:420px)]:w-28 [@media(max-height:420px)]:h-28 rounded-full border-2 flex items-center justify-center touch-none transition-colors ${
+            className={`relative w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 [@media(max-height:420px)]:w-28 [@media(max-height:420px)]:h-28 rounded-full border-2 flex items-center justify-center touch-none transition-colors ${
               aimVis.firing
                 ? 'border-amber-400/90 bg-amber-500/15'
                 : aimVis.active
@@ -269,7 +269,7 @@ export const TouchController: React.FC<TouchControllerProps> = ({
 
             {/* Inner Aim Puck */}
             <div
-              className={`absolute w-11 h-11 sm:w-12 sm:h-12 md:w-14 md:h-14 [@media(max-height:420px)]:w-11 [@media(max-height:420px)]:h-11 rounded-full border-2 flex items-center justify-center shadow-lg transition-colors ${
+              className={`absolute w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 [@media(max-height:420px)]:w-11 [@media(max-height:420px)]:h-11 rounded-full border-2 flex items-center justify-center shadow-lg transition-colors ${
                 aimVis.firing
                   ? 'bg-amber-500/55 border-amber-300'
                   : aimVis.active

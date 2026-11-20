@@ -1,0 +1,6 @@
+{
+  "name": "Tank 1990: Portal Siege",
+  "description": "Retro-inspired top-down Tank 1990 arcade shooter against portal monster waves, featuring a 30-second inter-wave RPG store, radar minimap, boss battles, and guided tutorial.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

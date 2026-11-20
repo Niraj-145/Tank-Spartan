@@ -51,9 +51,9 @@ export const GameHud: React.FC<GameHudProps> = ({
       }}
     >
       {/* Top Perimeter HUD */}
-      <div className="w-full flex items-start justify-between gap-2 sm:gap-3 md:gap-4">
+      <div className="w-full flex flex-wrap sm:flex-nowrap items-start justify-between gap-1.5 sm:gap-3 md:gap-4">
         {/* Top-Left: Tank HP, Level/XP, Gold */}
-        <div className="w-[152px] sm:w-[190px] md:w-[220px] shrink-0 bg-[#0d1117]/88 border border-slate-800/90 rounded-lg px-2.5 py-2 md:px-3.5 md:py-2.5 space-y-1.5">
+        <div className="order-1 w-[148px] sm:w-[190px] md:w-[220px] shrink-0 bg-[#0d1117]/88 border border-slate-800/90 rounded-lg px-2.5 py-2 md:px-3.5 md:py-2.5 space-y-1.5">
           <div className="flex items-center justify-between gap-1.5 text-[11px] md:text-xs">
             <span className="font-semibold text-slate-200 truncate">{hud.tankFormName}</span>
             <span className="font-mono-tabular text-slate-100 shrink-0">
@@ -86,7 +86,7 @@ export const GameHud: React.FC<GameHudProps> = ({
         </div>
 
         {/* Top-Center: Level, Wave, Monsters Left / Boss HP / Tutorial */}
-        <div className="flex-1 min-w-0 flex flex-col items-center gap-1.5 md:gap-2">
+        <div className="order-3 sm:order-2 w-full sm:w-auto sm:flex-1 min-w-0 flex flex-col items-center gap-1.5 md:gap-2">
           <div className="max-w-full bg-[#0d1117]/88 border border-slate-800/90 rounded-lg px-2.5 py-1.5 sm:px-4 sm:py-2 flex items-center justify-center gap-1.5 sm:gap-3 text-[11px] sm:text-xs md:text-sm whitespace-nowrap">
             {hud.isTutorial ? (
               <span className="font-semibold text-emerald-400">How to Play</span>
@@ -200,7 +200,7 @@ export const GameHud: React.FC<GameHudProps> = ({
         </div>
 
         {/* Top-Right: Aligned Controls Column + Circular Mini Map */}
-        <div className="shrink-0 flex items-start gap-1.5 sm:gap-2.5">
+        <div className="order-2 sm:order-3 shrink-0 flex items-start gap-1.5 sm:gap-2.5">
           <div className="pointer-events-auto flex flex-col gap-1 md:gap-1.5">
             <button
               type="button"
