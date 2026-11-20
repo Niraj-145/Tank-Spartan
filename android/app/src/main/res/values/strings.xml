@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Tank Spartan: Portal Siege</string>
+    <string name="title_activity_main">Tank Spartan: Portal Siege</string>
+    <string name="package_name">com.tankspartan.portalsiege</string>
+    <string name="custom_url_scheme">com.tankspartan.portalsiege</string>
+</resources>

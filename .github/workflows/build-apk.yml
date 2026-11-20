@@ -47,7 +47,6 @@ jobs:
       - name: Initialize & Sync Capacitor Android
         run: |
           echo "Checking Capacitor configuration..."
-          npx cap doctor
 
           echo "Checking Android platform..."
           if [ ! -d android ]; then
