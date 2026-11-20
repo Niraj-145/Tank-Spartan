@@ -1,4 +1,5 @@
 import {
+  COMBO_WINDOW_SECONDS,
   INTER_WAVE_SECONDS,
   MAX_GAME_LEVEL,
   MONSTER_STATS,
@@ -6,6 +7,7 @@ import {
   TUTORIAL_MAP_TEMPLATE,
   WEAPONS,
   getChassisUpgradeCost,
+  getComboMultiplier,
   getLevelConfig,
   getLevelGoldEconomy,
   getMaxUpgradeCap,
@@ -34,6 +36,7 @@ import {
 } from './types';
 
 const STORAGE_KEY_MAX_LEVEL = 'tank1990_portal_siege_max_level';
+const STORAGE_KEY_HIGH_SCORE = 'tank1990_portal_siege_high_score';
 
 export class TankGameEngine {
   private mainCanvas: HTMLCanvasElement | null = null;
@@ -123,6 +126,11 @@ export class TankGameEngine {
   // Stats
   private totalKills = 0;
   private levelKills = 0;
+  private score = 0;
+  private highScore = 0;
+  private comboCount = 0;
+  private comboTimer = 0;
+  private bestCombo = 0;
 
   // Tutorial state
   private isTutorial = false;
@@ -132,6 +140,8 @@ export class TankGameEngine {
 
   private onHudUpdate: (snapshot: HudSnapshot) => void;
   private hudSyncTimer = 0;
+  private canvasResizeObserver: ResizeObserver | null = null;
+  private rotatedLandscape = false;
 
   constructor(onHudUpdate: (snapshot: HudSnapshot) => void) {
     this.onHudUpdate = onHudUpdate;
@@ -140,8 +150,13 @@ export class TankGameEngine {
       if (saved) {
         this.unlockedMaxLevel = Math.max(1, Math.min(MAX_GAME_LEVEL, parseInt(saved, 10) || 1));
       }
+      const savedScore = localStorage.getItem(STORAGE_KEY_HIGH_SCORE);
+      if (savedScore) {
+        this.highScore = Math.max(0, parseInt(savedScore, 10) || 0);
+      }
     } catch {
       this.unlockedMaxLevel = 1;
+      this.highScore = 0;
     }
 
     this.tank = this.createFreshTank(1);
@@ -192,7 +207,18 @@ export class TankGameEngine {
   }
 
   public attachCanvases(main: HTMLCanvasElement | null, radar: HTMLCanvasElement | null) {
-    this.mainCanvas = main;
+    if (this.mainCanvas !== main) {
+      this.canvasResizeObserver?.disconnect();
+      this.canvasResizeObserver = null;
+      this.mainCanvas = main;
+      if (main && typeof ResizeObserver !== 'undefined') {
+        this.canvasResizeObserver = new ResizeObserver(() => {
+          this.handleViewportResize();
+        });
+        this.canvasResizeObserver.observe(main);
+      }
+      this.handleViewportResize();
+    }
     this.radarCanvas = radar;
   }
 
@@ -217,6 +243,8 @@ export class TankGameEngine {
       cancelAnimationFrame(this.rafId);
       this.rafId = null;
     }
+    this.canvasResizeObserver?.disconnect();
+    this.canvasResizeObserver = null;
     this.unbindWindowEvents();
   }
 
@@ -318,11 +346,19 @@ export class TankGameEngine {
     this.virtualFireButton = false;
   }
 
+  public setRotatedLandscape(rotated: boolean) {
+    this.rotatedLandscape = rotated;
+  }
+
   private handleMouseMove = (e: MouseEvent) => {
     if (!this.mainCanvas) return;
     const rect = this.mainCanvas.getBoundingClientRect();
-    const cx = e.clientX - rect.left;
-    const cy = e.clientY - rect.top;
+    let cx = e.clientX - rect.left;
+    let cy = e.clientY - rect.top;
+    if (this.rotatedLandscape) {
+      cx = e.clientY - rect.top;
+      cy = rect.right - e.clientX;
+    }
     this.mouseScreenX = cx;
     this.mouseScreenY = cy;
     this.mouseWorldX = cx / this.renderScale + this.cameraX;
@@ -366,6 +402,7 @@ export class TankGameEngine {
     window.addEventListener('mouseup', this.handleMouseUp);
     window.addEventListener('resize', this.handleViewportResize);
     window.addEventListener('orientationchange', this.handleViewportResize);
+    window.visualViewport?.addEventListener('resize', this.handleViewportResize);
     window.addEventListener('gamepadconnected', this.handleGamepadChange);
     window.addEventListener('gamepaddisconnected', this.handleGamepadChange);
   }
@@ -379,6 +416,7 @@ export class TankGameEngine {
     window.removeEventListener('mouseup', this.handleMouseUp);
     window.removeEventListener('resize', this.handleViewportResize);
     window.removeEventListener('orientationchange', this.handleViewportResize);
+    window.visualViewport?.removeEventListener('resize', this.handleViewportResize);
     window.removeEventListener('gamepadconnected', this.handleGamepadChange);
     window.removeEventListener('gamepaddisconnected', this.handleGamepadChange);
   }
@@ -430,6 +468,10 @@ export class TankGameEngine {
     this.loadMapOnly(this.currentLevel, false);
     this.tank = this.createFreshTank(this.currentLevel);
     this.totalKills = 0;
+    this.score = 0;
+    this.comboCount = 0;
+    this.comboTimer = 0;
+    this.bestCombo = 0;
     this.startLevel(this.currentLevel, true);
   }
 
@@ -439,6 +481,10 @@ export class TankGameEngine {
     this.tank = this.createFreshTank(1);
     this.tank.gold = 130;
     this.totalKills = 0;
+    this.score = 0;
+    this.comboCount = 0;
+    this.comboTimer = 0;
+    this.bestCombo = 0;
     this.tutorialStep = 'MOVE';
     this.tutorialBoughtUpgrade = false;
     this.tutorialWaypoint = { x: this.arenaWidth / 2, y: 390, radius: 36 };
@@ -469,6 +515,8 @@ export class TankGameEngine {
 
     if (!keepUpgrades) {
       this.tank = this.createFreshTank(this.currentLevel);
+      this.score = 0;
+      this.bestCombo = 0;
     } else {
       // Auto-upgrade Tank every level (+HP, +Speed, +Power) + Power Tank evolution on multiples of 5!
       if (this.currentLevel > prevLevel) {
@@ -491,6 +539,8 @@ export class TankGameEngine {
     }
 
     this.levelKills = 0;
+    this.comboCount = 0;
+    this.comboTimer = 0;
     this.placeTankAtSpawn();
     this.snapCameraToTank();
     this.beginWave(1);
@@ -642,6 +692,8 @@ export class TankGameEngine {
   public returnToTitle() {
     this.phase = 'TITLE';
     this.isTutorial = false;
+    this.comboCount = 0;
+    this.comboTimer = 0;
     this.heldKeys.clear();
     this.loadMapOnly(1, false);
     this.pushHud(true);
@@ -916,6 +968,13 @@ export class TankGameEngine {
       }
     }
     if (this.bannerTimer > 0) this.bannerTimer = Math.max(0, this.bannerTimer - dt);
+    if (this.comboTimer > 0) {
+      this.comboTimer = Math.max(0, this.comboTimer - dt);
+      if (this.comboTimer === 0 && this.comboCount > 0) {
+        this.comboCount = 0;
+        this.pushHud(true);
+      }
+    }
 
     this.updateTank(dt);
     this.updateCamera(dt);
@@ -2107,6 +2166,47 @@ export class TankGameEngine {
     this.totalKills++;
     this.levelKills++;
 
+    const prevMult = this.comboTimer > 0 ? getComboMultiplier(this.comboCount) : 1;
+    this.comboCount = this.comboTimer > 0 ? this.comboCount + 1 : 1;
+    this.comboTimer = COMBO_WINDOW_SECONDS;
+    this.bestCombo = Math.max(this.bestCombo, this.comboCount);
+    const mult = getComboMultiplier(this.comboCount);
+
+    const baseScore = MONSTER_STATS[m.archetype].scoreValue * (1 + (this.currentLevel - 1) * 0.1);
+    const gainedScore = Math.round(baseScore * mult);
+    this.score += gainedScore;
+    if (this.score > this.highScore) {
+      this.highScore = this.score;
+      try {
+        localStorage.setItem(STORAGE_KEY_HIGH_SCORE, String(this.highScore));
+      } catch {
+        // ignore storage errors
+      }
+    }
+
+    this.addFloatingText(
+      m.x,
+      m.y - m.radius - 10,
+      mult > 1 ? `+${gainedScore} (${mult}x)` : `+${gainedScore}`,
+      mult >= 4 ? '#F472B6' : mult >= 2 ? '#FBBF24' : '#E2E8F0',
+      mult > 1 ? 1.05 : 0.88
+    );
+
+    if (mult > prevMult) {
+      sound.playComboTierUp(mult);
+      const tierLabel =
+        mult >= 5
+          ? '5x OVERDRIVE!'
+          : mult >= 4
+          ? '4x RAMPAGE!'
+          : mult >= 3
+          ? '3x FRENZY!'
+          : `${mult}x COMBO!`;
+      const tierColor =
+        mult >= 5 ? '#C084FC' : mult >= 4 ? '#FB7185' : mult >= 3 ? '#FB923C' : '#38BDF8';
+      this.addFloatingText(m.x, m.y - m.radius - 28, tierLabel, tierColor, 1.2);
+    }
+
     sound.playKill(isBoss);
     this.emitBurst(m.x, m.y, m.color, isBoss ? 40 : 16, isBoss ? 250 : 160, isBoss ? 0.55 : 0.32);
     if (isBoss) {
@@ -2116,6 +2216,7 @@ export class TankGameEngine {
       this.hitstopTimer = 0.03;
       this.triggerShake(4, 0.12);
     }
+    this.pushHud(true);
 
     if (m.goldDrop > 0) {
       const goldCount = isBoss ? 4 : 1;
@@ -2396,13 +2497,15 @@ export class TankGameEngine {
   }
 
   private computeRenderScale(cssW: number, cssH: number): number {
-    // Uniform 1:1 world scale covering full viewport in both landscape and portrait without stretching
+    // Uniform 1:1 world scale covering full viewport in both landscape and portrait without over-zooming
     const isPortrait = cssH > cssW;
     const shortestSide = Math.min(cssW, cssH);
-    const mobileFriendlyZoom = isPortrait
-      ? Math.min(0.95, Math.max(0.58, shortestSide / 580))
-      : Math.min(1.05, Math.max(0.62, cssH / 620));
-    return Math.max(mobileFriendlyZoom, cssW / this.arenaWidth, cssH / this.arenaHeight);
+    const tacticalZoom = isPortrait
+      ? Math.min(0.95, Math.max(0.54, shortestSide / 640))
+      : cssH < 520
+      ? Math.min(0.85, Math.max(0.5, cssH / 760))
+      : Math.min(1.05, Math.max(0.62, cssH / 640));
+    return Math.max(tacticalZoom, cssW / this.arenaWidth, cssH / this.arenaHeight);
   }
 
   // --- Rendering ---
@@ -3168,6 +3271,13 @@ export class TankGameEngine {
       bossActive: boss ? { name: boss.name, hp: Math.max(0, boss.hp), maxHp: boss.maxHp } : null,
       totalKills: this.totalKills,
       levelKills: this.levelKills,
+      score: this.score,
+      highScore: this.highScore,
+      comboCount: this.comboTimer > 0 ? this.comboCount : 0,
+      comboTimer: this.comboTimer,
+      comboMaxTime: COMBO_WINDOW_SECONDS,
+      scoreMultiplier: this.comboTimer > 0 ? getComboMultiplier(this.comboCount) : 1,
+      bestCombo: this.bestCombo,
       storeTier: this.getEffectiveStoreLevel(),
       isTutorial: this.isTutorial,
       tutorialStep: this.tutorialStep,

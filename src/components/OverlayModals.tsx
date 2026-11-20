@@ -39,7 +39,7 @@ export const OverlayModals: React.FC<OverlayModalsProps> = ({
         paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))',
       }}
     >
-      <div className="w-full max-w-md max-h-[92dvh] overflow-y-auto bg-[#151c26] border border-slate-700 rounded-xl p-4 sm:p-6 text-center">
+      <div className="w-full max-w-md max-h-[92%] overflow-y-auto bg-[#151c26] border border-slate-700 rounded-xl p-4 sm:p-6 text-center">
         {hud.phase === 'PAUSED' && (
           <>
             <h2 className="font-display text-2xl sm:text-3xl font-bold text-white uppercase leading-none">
@@ -85,7 +85,19 @@ export const OverlayModals: React.FC<OverlayModalsProps> = ({
               {nextIsMegaBoss ? ' Next is a 5-Wave Super Boss level!' : ''}
             </p>
 
-            <div className="mt-4 grid grid-cols-3 divide-x divide-slate-800 py-2.5 border-y border-slate-800 text-center">
+            <div className="mt-4 grid grid-cols-2 @[420px]:grid-cols-4 gap-y-2.5 py-2.5 border-y border-slate-800 text-center">
+              <div className="px-2">
+                <div className="text-[11px] text-slate-400">Score</div>
+                <div className="text-sm sm:text-base font-bold text-sky-300 font-mono-tabular">
+                  {hud.score.toLocaleString()}
+                </div>
+              </div>
+              <div className="px-2">
+                <div className="text-[11px] text-slate-400">Best Combo</div>
+                <div className="text-sm sm:text-base font-bold text-orange-400 font-mono-tabular">
+                  {hud.bestCombo}x
+                </div>
+              </div>
               <div className="px-2">
                 <div className="text-[11px] text-slate-400">Kills</div>
                 <div className="text-sm sm:text-base font-bold text-white font-mono-tabular">
@@ -96,12 +108,6 @@ export const OverlayModals: React.FC<OverlayModalsProps> = ({
                 <div className="text-[11px] text-slate-400">Gold</div>
                 <div className="text-sm sm:text-base font-bold text-amber-400 font-mono-tabular">
                   {hud.gold}
-                </div>
-              </div>
-              <div className="px-2">
-                <div className="text-[11px] text-slate-400">Tank Lv</div>
-                <div className="text-sm sm:text-base font-bold text-emerald-400 font-mono-tabular">
-                  {hud.rpgLevel}
                 </div>
               </div>
             </div>
@@ -157,11 +163,17 @@ export const OverlayModals: React.FC<OverlayModalsProps> = ({
               Level {hud.level} · Wave {hud.wave} of {hud.totalWaves}
             </p>
 
-            <div className="mt-4 grid grid-cols-3 divide-x divide-slate-800 py-2.5 border-y border-slate-800 text-center">
+            <div className="mt-4 grid grid-cols-2 @[420px]:grid-cols-4 gap-y-2.5 py-2.5 border-y border-slate-800 text-center">
               <div className="px-2">
-                <div className="text-[11px] text-slate-400">Level</div>
-                <div className="text-sm sm:text-base font-bold text-white font-mono-tabular">
-                  {hud.level}
+                <div className="text-[11px] text-slate-400">Score</div>
+                <div className="text-sm sm:text-base font-bold text-sky-300 font-mono-tabular">
+                  {hud.score.toLocaleString()}
+                </div>
+              </div>
+              <div className="px-2">
+                <div className="text-[11px] text-slate-400">Best Combo</div>
+                <div className="text-sm sm:text-base font-bold text-orange-400 font-mono-tabular">
+                  {hud.bestCombo}x
                 </div>
               </div>
               <div className="px-2">
@@ -171,9 +183,9 @@ export const OverlayModals: React.FC<OverlayModalsProps> = ({
                 </div>
               </div>
               <div className="px-2">
-                <div className="text-[11px] text-slate-400">Tank Lv</div>
-                <div className="text-sm sm:text-base font-bold text-emerald-400 font-mono-tabular">
-                  {hud.rpgLevel}
+                <div className="text-[11px] text-slate-400">High Score</div>
+                <div className="text-sm sm:text-base font-bold text-amber-400 font-mono-tabular">
+                  {hud.highScore.toLocaleString()}
                 </div>
               </div>
             </div>

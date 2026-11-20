@@ -263,6 +263,17 @@ class SoundEngine {
     }
   }
 
+  public playComboTierUp(multiplier: number) {
+    if (!this.throttle('combo_tier', 85)) return;
+    const graph = this.ensureGraph();
+    if (!graph) return;
+    const { ctx, out } = graph;
+    const now = ctx.currentTime;
+    const baseFreq = multiplier >= 5 ? 880 : multiplier >= 4 ? 784 : multiplier >= 3 ? 659 : multiplier >= 2 ? 587 : 523;
+    this.playTone(ctx, out, 'triangle', now, 0.08, baseFreq, baseFreq * 1.25, 0.11, 0.004);
+    this.playTone(ctx, out, 'sine', now + 0.045, 0.12, baseFreq * 1.5, baseFreq * 1.5, 0.09, 0.004);
+  }
+
   public playPickup(kind: 'gold' | 'exp' | 'heal') {
     if (!this.throttle(`pickup_${kind}`, 45)) return;
     const graph = this.ensureGraph();

@@ -3,6 +3,7 @@ import { Crosshair, Flame } from 'lucide-react';
 
 interface TouchControllerProps {
   visible: boolean;
+  rotatedLandscape?: boolean;
   onMove: (x: number, y: number) => void;
   onAim: (x: number, y: number, firing: boolean) => void;
   onFireButton: (firing: boolean) => void;
@@ -18,6 +19,7 @@ interface StickVisual {
 
 export const TouchController: React.FC<TouchControllerProps> = ({
   visible,
+  rotatedLandscape = false,
   onMove,
   onAim,
   onFireButton,
@@ -46,7 +48,7 @@ export const TouchController: React.FC<TouchControllerProps> = ({
       setFireActive(false);
       onReset();
     }
-  }, [visible, onReset]);
+  }, [visible, rotatedLandscape, onReset]);
 
   useEffect(() => {
     const handleGlobalReset = () => {
@@ -78,8 +80,10 @@ export const TouchController: React.FC<TouchControllerProps> = ({
   };
 
   const updateMoveFromPoint = (clientX: number, clientY: number) => {
-    const rawDx = clientX - moveCenter.current.x;
-    const rawDy = clientY - moveCenter.current.y;
+    const rawScreenDx = clientX - moveCenter.current.x;
+    const rawScreenDy = clientY - moveCenter.current.y;
+    const rawDx = rotatedLandscape ? rawScreenDy : rawScreenDx;
+    const rawDy = rotatedLandscape ? -rawScreenDx : rawScreenDy;
     const dist = Math.hypot(rawDx, rawDy);
     const maxTravel = moveRadius.current * 0.82;
     const clamped = Math.min(maxTravel, dist);
@@ -122,8 +126,10 @@ export const TouchController: React.FC<TouchControllerProps> = ({
   };
 
   const updateAimFromPoint = (clientX: number, clientY: number) => {
-    const rawDx = clientX - aimCenter.current.x;
-    const rawDy = clientY - aimCenter.current.y;
+    const rawScreenDx = clientX - aimCenter.current.x;
+    const rawScreenDy = clientY - aimCenter.current.y;
+    const rawDx = rotatedLandscape ? rawScreenDy : rawScreenDx;
+    const rawDy = rotatedLandscape ? -rawScreenDx : rawScreenDy;
     const dist = Math.hypot(rawDx, rawDy);
     const maxTravel = aimRadius.current * 0.82;
     const clamped = Math.min(maxTravel, dist);
@@ -192,7 +198,7 @@ export const TouchController: React.FC<TouchControllerProps> = ({
           onPointerMove={handleMoveMove}
           onPointerUp={handleMoveEnd}
           onPointerCancel={handleMoveEnd}
-          className={`relative w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 [@media(max-height:420px)]:w-28 [@media(max-height:420px)]:h-28 rounded-full border-2 flex items-center justify-center touch-none transition-colors ${
+          className={`relative w-24 h-24 @[640px]:w-28 @[640px]:h-28 group-data-[compact=false]/root:@[768px]:w-36 group-data-[compact=false]/root:@[768px]:h-36 rounded-full border-2 flex items-center justify-center touch-none transition-colors ${
             moveVis.active
               ? 'border-sky-400/75 bg-[#0d1117]/60'
               : 'border-slate-500/45 bg-[#0d1117]/40'
@@ -206,7 +212,7 @@ export const TouchController: React.FC<TouchControllerProps> = ({
 
           {/* Inner Thumb Puck */}
           <div
-            className={`w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 [@media(max-height:420px)]:w-11 [@media(max-height:420px)]:h-11 rounded-full border-2 flex items-center justify-center shadow-lg transition-colors ${
+            className={`w-10 h-10 @[640px]:w-11 @[640px]:h-11 group-data-[compact=false]/root:@[768px]:w-14 group-data-[compact=false]/root:@[768px]:h-14 rounded-full border-2 flex items-center justify-center shadow-lg transition-colors ${
               moveVis.active
                 ? 'bg-sky-400/35 border-sky-300'
                 : 'bg-slate-700/60 border-slate-400/60'
@@ -224,21 +230,21 @@ export const TouchController: React.FC<TouchControllerProps> = ({
       </div>
 
       {/* Right Virtual Controls: Quick Fire Button + Aim/Auto-Shoot Stick */}
-      <div className="pointer-events-auto flex items-end gap-2 sm:gap-3.5">
-        <div className="flex flex-col items-center gap-1 pb-4 sm:pb-6">
+      <div className="pointer-events-auto flex items-end gap-2 @[640px]:gap-3.5">
+        <div className="flex flex-col items-center gap-1 pb-4 @[640px]:pb-6">
           <button
             type="button"
             aria-label="Fire Weapon"
             onPointerDown={handleFireDown}
             onPointerUp={handleFireEnd}
             onPointerCancel={handleFireEnd}
-            className={`w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 rounded-full border-2 flex flex-col items-center justify-center touch-none transition-transform active:scale-95 ${
+            className={`w-12 h-12 @[640px]:w-14 @[640px]:h-14 group-data-[compact=false]/root:@[768px]:w-16 group-data-[compact=false]/root:@[768px]:h-16 rounded-full border-2 flex flex-col items-center justify-center touch-none transition-transform active:scale-95 ${
               fireActive
                 ? 'bg-rose-500/50 border-rose-300 text-white'
                 : 'bg-[#0d1117]/55 border-amber-500/65 text-amber-300'
             }`}
           >
-            <Flame className="w-4 h-4 sm:w-5 sm:h-5" />
+            <Flame className="w-4 h-4 @[640px]:w-5 @[640px]:h-5" />
             <span className="text-[9px] font-bold uppercase tracking-wider mt-0.5 leading-none">
               Fire
             </span>
@@ -253,7 +259,7 @@ export const TouchController: React.FC<TouchControllerProps> = ({
             onPointerMove={handleAimMove}
             onPointerUp={handleAimEnd}
             onPointerCancel={handleAimEnd}
-            className={`relative w-24 h-24 sm:w-32 sm:h-32 md:w-36 md:h-36 [@media(max-height:420px)]:w-28 [@media(max-height:420px)]:h-28 rounded-full border-2 flex items-center justify-center touch-none transition-colors ${
+            className={`relative w-24 h-24 @[640px]:w-28 @[640px]:h-28 group-data-[compact=false]/root:@[768px]:w-36 group-data-[compact=false]/root:@[768px]:h-36 rounded-full border-2 flex items-center justify-center touch-none transition-colors ${
               aimVis.firing
                 ? 'border-amber-400/90 bg-amber-500/15'
                 : aimVis.active
@@ -262,14 +268,14 @@ export const TouchController: React.FC<TouchControllerProps> = ({
             }`}
           >
             <Crosshair
-              className={`w-5 h-5 sm:w-6 sm:h-6 pointer-events-none transition-opacity ${
+              className={`w-5 h-5 @[640px]:w-6 @[640px]:h-6 pointer-events-none transition-opacity ${
                 aimVis.active ? 'opacity-20' : 'opacity-45 text-amber-300'
               }`}
             />
 
             {/* Inner Aim Puck */}
             <div
-              className={`absolute w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 [@media(max-height:420px)]:w-11 [@media(max-height:420px)]:h-11 rounded-full border-2 flex items-center justify-center shadow-lg transition-colors ${
+              className={`absolute w-10 h-10 @[640px]:w-11 @[640px]:h-11 group-data-[compact=false]/root:@[768px]:w-14 group-data-[compact=false]/root:@[768px]:h-14 rounded-full border-2 flex items-center justify-center shadow-lg transition-colors ${
                 aimVis.firing
                   ? 'bg-amber-500/55 border-amber-300'
                   : aimVis.active
@@ -280,7 +286,7 @@ export const TouchController: React.FC<TouchControllerProps> = ({
                 transform: `translate3d(${aimVis.dx}px, ${aimVis.dy}px, 0)`,
               }}
             >
-              <Crosshair className="w-4 h-4 sm:w-5 sm:h-5 text-white/90" />
+              <Crosshair className="w-4 h-4 @[640px]:w-5 @[640px]:h-5 text-white/90" />
             </div>
           </div>
           <span className="text-[10px] font-medium tracking-wide text-slate-400/90 uppercase leading-none">

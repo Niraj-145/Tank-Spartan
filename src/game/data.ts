@@ -108,6 +108,7 @@ export interface MonsterBaseStats {
   radius: number;
   goldDrop: number;
   expDrop: number;
+  scoreValue: number;
   color: string;
   accentColor: string;
 }
@@ -122,6 +123,7 @@ export const MONSTER_STATS: Record<MonsterArchetype, MonsterBaseStats> = {
     radius: 13,
     goldDrop: 4,
     expDrop: 16,
+    scoreValue: 100,
     color: '#F97316',
     accentColor: '#FED7AA',
   },
@@ -134,6 +136,7 @@ export const MONSTER_STATS: Record<MonsterArchetype, MonsterBaseStats> = {
     radius: 16,
     goldDrop: 7,
     expDrop: 28,
+    scoreValue: 180,
     color: '#EF4444',
     accentColor: '#FCA5A5',
   },
@@ -146,6 +149,7 @@ export const MONSTER_STATS: Record<MonsterArchetype, MonsterBaseStats> = {
     radius: 19,
     goldDrop: 10,
     expDrop: 42,
+    scoreValue: 260,
     color: '#6366F1',
     accentColor: '#C7D2FE',
   },
@@ -158,6 +162,7 @@ export const MONSTER_STATS: Record<MonsterArchetype, MonsterBaseStats> = {
     radius: 15,
     goldDrop: 6,
     expDrop: 25,
+    scoreValue: 140,
     color: '#A855F7',
     accentColor: '#E9D5FF',
   },
@@ -170,6 +175,7 @@ export const MONSTER_STATS: Record<MonsterArchetype, MonsterBaseStats> = {
     radius: 26,
     goldDrop: 38,
     expDrop: 180,
+    scoreValue: 1000,
     color: '#DC2626',
     accentColor: '#FDE047',
   },
@@ -182,10 +188,22 @@ export const MONSTER_STATS: Record<MonsterArchetype, MonsterBaseStats> = {
     radius: 32,
     goldDrop: 85,
     expDrop: 420,
+    scoreValue: 2500,
     color: '#991B1B',
     accentColor: '#38BDF8',
   },
 };
+
+export const COMBO_WINDOW_SECONDS = 3.6;
+
+export function getComboMultiplier(comboCount: number): number {
+  if (comboCount >= 20) return 5;
+  if (comboCount >= 12) return 4;
+  if (comboCount >= 7) return 3;
+  if (comboCount >= 4) return 2;
+  if (comboCount >= 2) return 1.5;
+  return 1;
+}
 
 export function getLevelGoldEconomy(level: number): { dropChance: number; goldScale: number } {
   const safeLv = Math.max(1, Math.min(MAX_GAME_LEVEL, level));

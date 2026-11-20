@@ -86,7 +86,7 @@ export const StoreModal: React.FC<StoreModalProps> = ({
         paddingBottom: 'max(0.5rem, env(safe-area-inset-bottom))',
       }}
     >
-      <div className="w-full max-w-4xl max-h-[94dvh] flex flex-col bg-[#151c26] border border-slate-700/90 rounded-xl overflow-hidden">
+      <div className="w-full max-w-4xl max-h-[94%] flex flex-col bg-[#151c26] border border-slate-700/90 rounded-xl overflow-hidden">
         {/* Header */}
         <div className="flex flex-wrap items-center justify-between gap-2.5 sm:gap-4 px-4 py-2.5 sm:px-5 sm:py-3.5 border-b border-slate-800 shrink-0">
           <div className="min-w-0">
@@ -154,7 +154,7 @@ export const StoreModal: React.FC<StoreModalProps> = ({
                   )}
                 </span>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 text-[11px] text-slate-300">
+              <div className="grid grid-cols-1 @[520px]:grid-cols-2 @[768px]:grid-cols-5 gap-2 text-[11px] text-slate-300">
                 {WEAPON_ORDER.map((id, idx) => {
                   const w = WEAPONS[id];
                   return (
@@ -180,7 +180,7 @@ export const StoreModal: React.FC<StoreModalProps> = ({
           )}
 
           {/* Store Two-Column Body */}
-          <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-800">
+          <div className="grid grid-cols-1 @[700px]:grid-cols-2 divide-y @[700px]:divide-y-0 @[700px]:divide-x divide-slate-800">
             <div className="p-4 sm:p-5 space-y-3">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
                 Guns

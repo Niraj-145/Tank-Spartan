@@ -218,6 +218,13 @@ export interface HudSnapshot {
   bossActive: { name: string; hp: number; maxHp: number } | null;
   totalKills: number;
   levelKills: number;
+  score: number;
+  highScore: number;
+  comboCount: number;
+  comboTimer: number;
+  comboMaxTime: number;
+  scoreMultiplier: number;
+  bestCombo: number;
   storeTier: number;
   isTutorial: boolean;
   tutorialStep: TutorialStepId;
