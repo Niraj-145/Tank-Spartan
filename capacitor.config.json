@@ -33,13 +33,18 @@ jobs:
         run: sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
       - name: Install Node Dependencies
-        run: npm ci
+        run: npm ci --include=dev
+
+      - name: Verify Capacitor Installation
+        run: |
+          npm ls @capacitor/cli @capacitor/core @capacitor/android
+          ./node_modules/.bin/cap --version
 
       - name: Build Web App
         run: npm run build
 
       - name: Sync Capacitor Android
-        run: npx cap sync android
+        run: ./node_modules/.bin/cap sync android
 
       - name: Build Debug APK
         working-directory: android
